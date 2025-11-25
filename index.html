@@ -55,6 +55,20 @@
             background-color: rgba(100, 100, 100, 0.7);
             cursor: not-allowed;
         }
+
+        /* 为热点文本添加样式 */
+    .annotation-text {
+        background: rgba(255, 255, 255, 0.85); /* 半透明白色背景 */
+        border-radius: 4px;
+        padding: 6px 10px;
+        font-size: 14px;
+        color: #333;
+        /* 确保它看起来像一个标签 */
+        white-space: nowrap; 
+    }
+    .small-text {
+        font-size: 12px;
+    }
     </style>
 </head>
 <body>
@@ -67,7 +81,15 @@
         camera-controls 
         ar 
         shadow-intensity="1">
+
+        <div slot="hotspot-annotation-1" id="statusLabel"
+         data-position="1 1.5 0"         data-normal="0 1 0"             class="annotation-text">
+        动态信息
+    </div>
     </model-viewer>
+
+
+    
 
     <div class="controls">
         
@@ -128,6 +150,48 @@
                // console.log(`模型Y轴位置: ${viewer.model.model.position.y.toFixed(2)}m`);
             } 
         }
+
+
+        // --- 自动更新逻辑 ---
+let updateCounter = 0;
+
+/**
+ * 启动定时器，每隔 2 秒更新一次热点状态
+ */
+
+ function updateStatus(newStatus) {
+    const label = document.getElementById('statusLabel');
+    if (label) {
+        // ⭐️ 直接修改 div 的文本内容 ⭐️
+        label.textContent = `其他设备状态更新：${newStatus} - ${new Date().toLocaleTimeString()}`;
+        
+        // 虽然对于文本修改通常不是必需的，但调用 requestUpdate() 可以确保 model-viewer 立即重绘
+        viewer.requestUpdate(); 
+    }
+}
+function startAutoUpdate() {
+    // 设置定时器，每 2000 毫秒（2 秒）执行一次更新
+    setInterval(() => {
+        updateCounter++;
+        
+        // 模拟生成不同的状态信息
+        let status;
+        if (updateCounter % 3 === 0) {
+            status = '已连接，数据同步中';
+        } else if (updateCounter % 3 === 1) {
+            status = '状态正常，能耗：5W';
+        } else {
+            status = `运行时间: ${updateCounter * 2}秒`;
+        }
+        
+        // 调用之前定义的函数来更新文本
+        updateStatus(status); 
+        
+    }, 2000); // 2000 毫秒 = 2 秒
+}
+
+// 确保在页面加载后启动自动更新
+startAutoUpdate();
     </script>
     
 </body>
