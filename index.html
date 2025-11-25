@@ -3,25 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>增强显示模块</title>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+    <title>增强显示模块 - 高度控制与切换</title>
+    
+    <script type="module" src="model-viewer.min.js"></script>
     
     <style>
-        /* 让模型占满全屏 */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-        model-viewer { width: 100%; height: 100%; background-color: #f0f0f0; }
+        /* 基础样式和全屏设置 */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            font-family: sans-serif; 
+        }
+        model-viewer { 
+            width: 100%; 
+            height: 100%; 
+            background-color: #f0f0f0; 
+        }
+
+        /* 2. 按钮容器样式：右下方定位 */
+        .controls {
+            position: absolute;
+            bottom: 20px; 
+            right: 20px; 
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            /* 使按钮组垂直排列 */
+            flex-direction: column; 
+            align-items: flex-end;
+        }
+        
+        /* 按钮组布局 */
+        .controls .model-switch-group, .controls .height-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .controls button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .controls button:disabled {
+            background-color: rgba(100, 100, 100, 0.7);
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
 
     <model-viewer 
+        id="modelViewer" 
         src="room_scene_corridor.glb" 
-        alt="一个 3D 宇航员模型"
+        alt="一个 3D 模型"
         auto-rotate 
         camera-controls 
         ar 
         shadow-intensity="1">
     </model-viewer>
+
+    <div class="controls">
+        
+        <!--<div class="height-group">
+            <button id="btnUp" onclick="adjustElevation(0.1)" disabled>⬆️ 模型上移</button>
+            <button id="btnDown" onclick="adjustElevation(-0.1)" disabled>⬇️ 模型下移</button>
+        </div>-->
+
+        <div class="model-switch-group">
+            <button onclick="switchModel('room_scene_corridor.glb', '走廊场景')">建筑内部</button>
+            <button onclick="switchModel('building_models.glb', '宇航员模型')">建筑点云</button>
+        </div>
+    </div>
+
+    <script>
+        const viewer = document.getElementById('modelViewer');
+        const STEP_SIZE = 0.1; // 每次移动 0.1 米
+
+        // --- 事件监听：加载完成时启用按钮 ---
+        viewer.addEventListener('load', () => {
+            //document.getElementById('btnUp').disabled = false;
+           // document.getElementById('btnDown').disabled = false;
+            console.log("模型加载完成，操作按钮已启用。");
+        });
+
+        /**
+         * 动态切换 model-viewer 的模型源
+         */
+        function switchModel(newSrc, altText) {
+            if (viewer) {
+                // 切换 src 之前先禁用高度按钮，等待新模型加载完成
+               // document.getElementById('btnUp').disabled = true;
+                //document.getElementById('btnDown').disabled = true;
+                
+                viewer.src = newSrc;
+                viewer.alt = altText;
+                
+                // 尝试重置高度
+                if (viewer.model && viewer.model.model) {
+                     viewer.model.model.position.y = 0;
+                }
+            }
+        }
+
+        /**
+         * 调整模型在 3D 空间中的垂直位置（Y 轴）
+         */
+        function adjustElevation(delta) {
+            // 由于按钮在未加载完成时是禁用的，此处不需要复杂的检查
+
+            const modelViewer = document.querySelector('#modelViewer');
+
+            //console.log(modelViewer, "pos",modelViewer.position)
+            //console.log(viewer,viewer.model,viewer.model.model)
+            if (viewer && viewer.model &&  viewer.model.scene && viewer.model.scene.root) {
+                // 直接访问 Three.js 模型对象，修改 Y 轴位置
+                viewer.model.model.position.y += delta;
+               // console.log(`模型Y轴位置: ${viewer.model.model.position.y.toFixed(2)}m`);
+            } 
+        }
+    </script>
     
 </body>
 </html>
